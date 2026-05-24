@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SR – ResuméCraft</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232D5016'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Georgia,serif' font-size='13' font-weight='700' fill='white' letter-spacing='-0.5'>SR</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --bg: #F8F6F2;
+  --card: #FFFFFF;
+  --text: #1A1A1A;
+  --muted: #6B6B6B;
+  --accent: #2D5016;
+  --accent2: #8B6914;
+  --border: #E2DDD6;
+  --hover: #F0EDE7;
+  --danger: #C0392B;
+  --radius: 12px;
+  --shadow: 0 2px 16px rgba(0,0,0,0.07);
+  --nav-h: 60px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'IBM Plex Sans Thai','DM Sans',sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── NAV ── */
+nav {
+  background: var(--card); border-bottom: 1px solid var(--border);
+  padding: 0 1.25rem; display: flex; align-items: center; justify-content: space-between;
+  height: var(--nav-h); position: sticky; top: 0; z-index: 100; gap: 8px;
+}
+.logo { font-family: 'DM Serif Display',serif; font-size: 1.3rem; color: var(--accent); letter-spacing: -0.5px; white-space: nowrap; }
+.logo span { color: var(--accent2); }
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tab {
+  padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 500; color: var(--muted);
+  border: none; background: none; transition: all .2s; white-space: nowrap;
+}
+.nav-tab:hover { background: var(--hover); color: var(--text); }
+.nav-tab.active { background: var(--accent); color: #fff; }
+.nav-actions { display: flex; gap: 6px; flex-shrink: 0; }
+/* hide text label on small screens, show icon only */
+.nav-label-full { display: inline; }
+.nav-label-short { display: none; }
+
+.btn {
+  padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  cursor: pointer; border: 1.5px solid transparent; transition: all .2s; font-family: inherit; white-space: nowrap;
+}
+.btn-outline { border-color: var(--border); background: none; color: var(--text); }
+.btn-outline:hover { background: var(--hover); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: #1e3a0e; }
+.btn-danger { background: #fff0ef; color: var(--danger); border-color: #fad4d0; }
+.btn-danger:hover { background: #ffe0de; }
+.btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+/* ── PAGES ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── VIEW PAGE ── */
+.resume-hero-wrap {
+  display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - var(--nav-h));
+}
+.sidebar-panel {
+  background: var(--card); border-right: 1px solid var(--border);
+  padding: 1.25rem; overflow-y: auto; height: calc(100vh - var(--nav-h));
+  position: sticky; top: var(--nav-h);
+}
+/* collapsible sidebar toggle – hidden on desktop */
+.sidebar-toggle { display: none; }
+
+.sidebar-panel h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 0.8rem; }
+.template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.25rem; }
+.template-thumb {
+  border: 2px solid var(--border); border-radius: 8px; padding: 8px;
+  cursor: pointer; transition: all .2s; background: var(--bg); text-align: center;
+}
+.template-thumb:hover { border-color: var(--accent); }
+.template-thumb.selected { border-color: var(--accent); background: #f0f5eb; }
+.template-thumb .t-preview {
+  height: 64px; border-radius: 4px; margin-bottom: 5px; overflow: hidden;
+  display: flex; flex-direction: column; gap: 3px; padding: 5px;
+}
+.template-thumb .t-name { font-size: 10px; font-weight: 600; color: var(--text); }
+.t-line { height: 4px; border-radius: 3px; background: currentColor; opacity: 0.15; }
+.t-fat { height: 9px; }
+
+.resume-main {
+  padding: 1.5rem; overflow-y: auto; background: #EAE8E3;
+  display: flex; flex-direction: column; align-items: center;
+  min-height: calc(100vh - var(--nav-h));
+}
+
+/* Resume paper scales with viewport */
+.resume-paper-wrap {
+  width: 100%; max-width: 900px; overflow-x: auto;
+}
+.resume-paper {
+  width: 794px; min-height: 1123px; background: #fff;
+  box-shadow: var(--shadow); border-radius: 4px; transition: all .3s;
+  transform-origin: top left;
+}
+
+/* ── TEMPLATE STYLES ── */
+.resume-paper.tpl-classic .rp-header { background: #1A1A2E; color: #fff; padding: 2rem 2rem; }
+.resume-paper.tpl-classic .rp-header h1 { font-family: 'DM Serif Display',serif; font-size: 1.8rem; }
+.resume-paper.tpl-classic .rp-header p { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin-top: 3px; }
+.resume-paper.tpl-classic .rp-contact-row { display: flex; gap: 1rem; margin-top: 0.75rem; font-size: 0.78rem; color: rgba(255,255,255,0.8); flex-wrap: wrap; }
+.resume-paper.tpl-classic .rp-body { display: grid; grid-template-columns: 1fr 1.8fr; }
+.resume-paper.tpl-classic .rp-left { padding: 1.5rem 1.25rem; border-right: 1px solid var(--border); }
+.resume-paper.tpl-classic .rp-right { padding: 1.5rem 1.25rem; }
+.resume-paper.tpl-classic .rp-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #1A1A2E; border-bottom: 2px solid #1A1A2E; padding-bottom: 3px; margin-bottom: 10px; margin-top: 18px; }
+.resume-paper.tpl-classic .rp-section-title:first-child { margin-top: 0; }
+
+.resume-paper.tpl-modern .rp-header { padding: 2rem 2rem 1.25rem; border-bottom: 3px solid #D4A843; }
+.resume-paper.tpl-modern .rp-header h1 { font-family: 'Playfair Display',serif; font-size: 2rem; color: #1A1A1A; }
+.resume-paper.tpl-modern .rp-header .subtitle { color: #D4A843; font-weight: 600; font-size: 0.9rem; margin-top: 2px; }
+.resume-paper.tpl-modern .rp-contact-row { display: flex; gap: 1rem; margin-top: 0.75rem; font-size: 0.78rem; color: var(--muted); flex-wrap: wrap; }
+.resume-paper.tpl-modern .rp-body { padding: 1.25rem 2rem; display: grid; grid-template-columns: 1.8fr 1fr; gap: 1.5rem; }
+.resume-paper.tpl-modern .rp-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #D4A843; margin-bottom: 10px; margin-top: 18px; }
+.resume-paper.tpl-modern .rp-section-title:first-child { margin-top: 0; }
+
+.resume-paper.tpl-minimal .rp-header { padding: 2rem 2.5rem 1.5rem; }
+.resume-paper.tpl-minimal .rp-header h1 { font-family: 'DM Serif Display',serif; font-size: 2.2rem; color: #111; letter-spacing: -1px; }
+.resume-paper.tpl-minimal .rp-header .subtitle { color: #555; font-size: 0.95rem; margin-top: 3px; }
+.resume-paper.tpl-minimal .rp-contact-row { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.78rem; color: #888; flex-wrap: wrap; }
+.resume-paper.tpl-minimal .rp-body { padding: 0 2.5rem 2.5rem; }
+.resume-paper.tpl-minimal .rp-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #999; margin-bottom: 10px; margin-top: 24px; }
+.resume-paper.tpl-minimal .rp-divider { height: 1px; background: #eee; margin-bottom: 14px; }
+
+.resume-paper.tpl-bold .rp-header { background: #0F3D2B; color: #fff; padding: 2rem; display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 1rem; }
+.resume-paper.tpl-bold .rp-header h1 { font-family: 'DM Serif Display',serif; font-size: 1.8rem; }
+.resume-paper.tpl-bold .rp-header .subtitle { color: #7EC8A0; font-size: 0.85rem; margin-top: 3px; }
+.resume-paper.tpl-bold .rp-contact-col { text-align: right; font-size: 0.75rem; color: rgba(255,255,255,0.75); line-height: 1.8; }
+.resume-paper.tpl-bold .rp-body { display: grid; grid-template-columns: 1.6fr 1fr; }
+.resume-paper.tpl-bold .rp-left { padding: 1.5rem 1.25rem; }
+.resume-paper.tpl-bold .rp-right { background: #F7FAF8; padding: 1.5rem 1.25rem; }
+.resume-paper.tpl-bold .rp-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #0F3D2B; margin-bottom: 10px; margin-top: 18px; }
+.resume-paper.tpl-bold .rp-section-title:first-child { margin-top: 0; }
+
+/* ── COMMON RESUME COMPONENTS ── */
+.exp-item { margin-bottom: 14px; }
+.exp-item .exp-title { font-weight: 600; font-size: 13px; }
+.exp-item .exp-company { font-size: 12px; font-weight: 500; }
+.exp-item .exp-date { font-size: 11px; color: var(--muted); margin: 2px 0 3px; }
+.exp-item .exp-desc { font-size: 12px; color: #444; line-height: 1.6; }
+.edu-item { margin-bottom: 12px; }
+.edu-item .edu-degree { font-weight: 600; font-size: 13px; }
+.edu-item .edu-school { font-size: 12px; color: var(--muted); }
+.edu-item .edu-year { font-size: 11px; color: var(--muted); }
+.skill-pill { display: inline-block; background: #F0EDE7; color: #333; font-size: 11px; padding: 3px 9px; border-radius: 20px; margin: 2px 2px 2px 0; }
+.lang-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+.lang-level { color: var(--muted); font-size: 11px; }
+.rp-summary { font-size: 12px; color: #444; line-height: 1.7; margin-bottom: 8px; }
+
+/* ── EDIT PAGE ── */
+.edit-page-layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - var(--nav-h)); }
+.edit-nav {
+  background: var(--card); border-right: 1px solid var(--border);
+  padding: 1rem 0; display: flex; flex-direction: column;
+  position: sticky; top: var(--nav-h); height: calc(100vh - var(--nav-h)); overflow-y: auto;
+}
+.edit-nav-item {
+  padding: 10px 1.25rem; cursor: pointer; font-size: 13px; font-weight: 500;
+  display: flex; align-items: center; gap: 10px; color: var(--muted); transition: all .2s;
+}
+.edit-nav-item:hover { background: var(--hover); color: var(--text); }
+.edit-nav-item.active { background: #EFF5E8; color: var(--accent); border-right: 3px solid var(--accent); }
+.edit-nav-item .nav-icon { font-size: 17px; flex-shrink: 0; }
+.edit-nav-save { padding: 1rem 1.25rem; margin-top: auto; border-top: 1px solid var(--border); }
+.edit-content { padding: 1.5rem; overflow-y: auto; }
+.edit-section { display: none; }
+.edit-section.active { display: block; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 8px; }
+.section-header h2 { font-size: 1.1rem; font-weight: 600; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 0.9rem; }
+.form-group.full { grid-column: 1/-1; }
+label { font-size: 12px; font-weight: 500; color: var(--muted); }
+input[type=text], input[type=email], input[type=tel], input[type=url], textarea, select {
+  padding: 9px 13px; border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 14px; font-family: inherit; background: var(--card); color: var(--text);
+  outline: none; transition: border-color .2s; width: 100%;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+textarea { resize: vertical; min-height: 80px; }
+.card-item {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1rem; margin-bottom: 0.9rem;
+}
+.card-item-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 0; }
+.card-item-title { font-weight: 600; font-size: 14px; }
+.card-item-actions { display: flex; gap: 5px; flex-shrink: 0; }
+
+/* ── SKILL EDITOR ── */
+.skill-editor { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; padding: 12px; background: var(--bg); border-radius: 8px; min-height: 48px; }
+.skill-tag {
+  display: flex; align-items: center; gap: 6px; background: var(--card);
+  border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 13px;
+}
+.skill-tag button { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 16px; line-height: 1; padding: 0; }
+.skill-tag button:hover { color: var(--danger); }
+.add-skill-row { display: flex; gap: 8px; }
+.add-skill-row input { flex: 1; }
+
+/* ── CONTACT PAGE ── */
+.contact-page { max-width: 620px; margin: 2rem auto; padding: 0 1rem; }
+.contact-card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 2rem; }
+.contact-card h2 { font-family: 'DM Serif Display',serif; font-size: 1.6rem; margin-bottom: 0.4rem; }
+.contact-card > p { color: var(--muted); font-size: 14px; margin-bottom: 1.5rem; line-height: 1.6; }
+.contact-send-status { margin-top: 1rem; padding: 12px 16px; border-radius: 8px; font-size: 14px; display: none; }
+.status-success { background: #EFF5E8; color: var(--accent); border: 1px solid #c8dfb0; }
+.status-error { background: #fff0ef; color: var(--danger); border: 1px solid #fad4d0; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+  padding: 1rem;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--card); border-radius: var(--radius); padding: 1.75rem;
+  width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
+  transform: translateY(20px); transition: transform .25s;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1.25rem; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px);
+  z-index: 300; background: #1A1A1A; color: #fff; padding: 10px 20px;
+  border-radius: 20px; font-size: 13px; opacity: 0; transition: all .3s; white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 2.5rem; color: var(--muted); font-size: 14px; }
+.empty-state .big { font-size: 2rem; margin-bottom: 0.5rem; }
+
+/* ── PROFILE PHOTO UPLOAD ── */
+.photo-upload-area {
+  width: 120px; height: 120px; border-radius: 50%; border: 2.5px dashed var(--border);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .2s; background: var(--bg); overflow: hidden;
+  position: relative; margin: 0 auto 1rem;
+}
+.photo-upload-area:hover { border-color: var(--accent); background: #EFF5E8; }
+.photo-upload-area img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.photo-upload-area .upload-hint { font-size: 11px; color: var(--muted); text-align: center; padding: 8px; line-height: 1.5; }
+.photo-upload-area .upload-icon { font-size: 26px; margin-bottom: 3px; }
+.photo-actions { display: flex; gap: 8px; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
+.photo-shape-row { display: flex; gap: 6px; justify-content: center; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.shape-btn {
+  padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;
+  border: 1.5px solid var(--border); background: none; color: var(--muted); transition: all .2s; font-family: inherit;
+}
+.shape-btn.active { border-color: var(--accent); color: var(--accent); background: #EFF5E8; }
+
+/* ── BOTTOM NAV (mobile) ── */
+.bottom-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+  background: var(--card); border-top: 1px solid var(--border);
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  justify-content: space-around;
+}
+.bottom-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font-size: 10px; font-weight: 500; color: var(--muted); cursor: pointer;
+  padding: 4px 16px; border-radius: 8px; border: none; background: none; font-family: inherit;
+}
+.bottom-nav-item .bn-icon { font-size: 22px; }
+.bottom-nav-item.active { color: var(--accent); }
+
+/* ── RANGE ── */
+input[type=range] { -webkit-appearance: none; height: 4px; border-radius: 2px; background: var(--border); padding: 0; border: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+
+/* ── PRINT ── */
+@media print {
+  nav, .resume-toolbar, .sidebar-panel, .bottom-nav { display: none !important; }
+  .resume-main { padding: 0; background: none; }
+  .resume-paper { box-shadow: none; transform: none !important; }
+}
+
+/* ════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ════════════════════════════════════════ */
+
+/* ── Tablet landscape & smaller desktop (≤1100px) ── */
+@media (max-width: 1100px) {
+  .resume-hero-wrap { grid-template-columns: 260px 1fr; }
+  .edit-page-layout { grid-template-columns: 200px 1fr; }
+  .edit-nav-item { padding: 9px 1rem; font-size: 12.5px; }
+}
+
+/* ── Tablet portrait (≤820px) ── */
+@media (max-width: 820px) {
+  :root { --nav-h: 56px; }
+
+  /* Nav: hide desktop edit button, shrink tab labels */
+  .nav-actions .btn-outline { display: none; }
+  .nav-label-full { display: none; }
+  .nav-label-short { display: inline; }
+  .nav-tab { padding: 5px 10px; font-size: 12px; }
+
+  /* View page: sidebar collapses into top strip */
+  .resume-hero-wrap { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .sidebar-panel {
+    position: static; height: auto; max-height: none;
+    border-right: none; border-bottom: 1px solid var(--border);
+    padding: 1rem;
+  }
+  /* Collapse sidebar content by default on tablet; show toggle */
+  .sidebar-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 0;
+  }
+  .sidebar-collapsible { overflow: hidden; max-height: 0; transition: max-height .3s; }
+  .sidebar-collapsible.open { max-height: 1000px; }
+  .sidebar-panel.expanded .sidebar-collapsible { max-height: 1000px; }
+
+  .resume-main { padding: 1rem; min-height: auto; }
+  .resume-toolbar { align-self: center; justify-content: center; }
+
+  /* Scale resume paper to fit width */
+  .resume-paper-wrap { overflow-x: auto; }
+
+  /* Edit page: sidebar becomes horizontal scrollable tab strip */
+  .edit-page-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .edit-nav {
+    position: static; height: auto; flex-direction: row; overflow-x: auto;
+    padding: 0; border-right: none; border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  .edit-nav::-webkit-scrollbar { display: none; }
+  .edit-nav-item {
+    flex-direction: column; gap: 2px; padding: 10px 14px; font-size: 11px;
+    border-right: none; white-space: nowrap; flex-shrink: 0;
+  }
+  .edit-nav-item.active { border-right: none; border-bottom: 3px solid var(--accent); background: #EFF5E8; }
+  .edit-nav-item .nav-icon { font-size: 20px; }
+  .edit-nav-save { display: none; } /* shown as floating button instead */
+  .edit-content { padding: 1.25rem; }
+
+  .form-grid { grid-template-columns: 1fr; }
+  .form-group.full { grid-column: 1; }
+
+  /* floating save button */
+  .floating-save {
+    position: fixed; bottom: 1rem; right: 1rem; z-index: 80;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+
+  .contact-page { margin: 1.5rem auto; }
+  .contact-card { padding: 1.5rem; }
+}
+
+/* ── Mobile (≤600px) ── */
+@media (max-width: 600px) {
+  :root { --nav-h: 52px; }
+
+  /* Switch to bottom nav on mobile */
+  .nav-tabs { display: none; }
+  .nav-actions { display: none; }
+  .bottom-nav { display: flex; }
+  /* add bottom padding so content isn't hidden behind bottom nav */
+  .page.active { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+
+  nav { padding: 0 1rem; }
+  .logo { font-size: 1.2rem; }
+
+  /* Sidebar fully expanded by default on mobile */
+  .sidebar-collapsible { max-height: 1000px; }
+  .template-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .template-thumb .t-preview { height: 50px; }
+
+  /* Resume scales to fit phone screen */
+  .resume-main { padding: 0.75rem; }
+
+  /* Edit nav wraps */
+  .edit-nav-item { padding: 8px 12px; }
+
+  .card-item-header { flex-direction: column; align-items: flex-start; }
+  .card-item-actions { margin-top: 8px; }
+
+  .modal { border-radius: var(--radius); margin: 0; width: calc(100% - 2rem); max-height: 85vh; }
+  .modal-overlay { align-items: center; padding: 1rem; }
+
+  .contact-card { padding: 1.25rem; border-radius: 12px; }
+  .contact-card h2 { font-size: 1.4rem; }
+
+  .toast { font-size: 12px; padding: 9px 16px; bottom: calc(72px + env(safe-area-inset-bottom)); }
+
+  .floating-save { bottom: calc(72px + env(safe-area-inset-bottom) + 0.5rem); }
+}
+
+/* ── Small mobile (≤380px) ── */
+@media (max-width: 380px) {
+  .logo-text { display: none; }
+  .template-grid { grid-template-columns: 1fr 1fr; }
+  .template-thumb .t-preview { height: 56px; }
+  .edit-nav-item { padding: 8px 10px; font-size: 10px; }
+  .btn-sm { padding: 4px 8px; font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Resumé<span>Craft</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchPage('view')">👁 <span class="nav-label-full">ดูเรซูเม</span><span class="nav-label-short">ดู</span></button>
+    <button class="nav-tab" onclick="switchPage('edit')">✏️ <span class="nav-label-full">แก้ไขข้อมูล</span><span class="nav-label-short">แก้ไข</span></button>
+    <button class="nav-tab" onclick="switchPage('contact')">✉️ <span class="nav-label-full">ติดต่อเรา</span><span class="nav-label-short">ติดต่อ</span></button>
+  </div>
+  <div class="nav-actions">
+    <button class="btn btn-outline" onclick="switchPage('edit')">✏️ แก้ไข</button>
+    <button class="btn btn-primary" onclick="exportPDF()">⬇ Export PDF</button>
+  </div>
+</nav>
+
+<!-- PAGE: VIEW -->
+<div class="page active" id="page-view">
+  <div class="resume-hero-wrap">
+    <div class="sidebar-panel" id="sidebar-panel">
+      <div class="sidebar-toggle" onclick="toggleSidebar()">
+        <span>🎨 ตั้งค่าเทมเพลต</span>
+        <span id="sidebar-arrow">▼</span>
+      </div>
+      <div class="sidebar-collapsible" id="sidebar-collapsible">
+      <h3 style="margin-top:1rem;">เลือกเทมเพลต</h3>
+      <div class="template-grid">
+        <div class="template-thumb selected" onclick="selectTemplate('classic',this)">
+          <div class="t-preview" style="background:#1A1A2E;color:#fff;">
+            <div class="t-line t-fat" style="background:#fff;opacity:0.5;width:70%;"></div>
+            <div class="t-line" style="background:#fff;opacity:0.3;width:45%;"></div>
+            <div style="flex:1;display:grid;grid-template-columns:1fr 1.8fr;gap:3px;margin-top:4px;">
+              <div style="border-right:1px solid rgba(255,255,255,0.2);padding-right:3px;">
+                <div class="t-line" style="background:#fff;opacity:0.4;width:80%;margin-bottom:3px;"></div>
+                <div class="t-line" style="background:#fff;opacity:0.2;width:90%;margin-bottom:2px;"></div>
+                <div class="t-line" style="background:#fff;opacity:0.2;width:70%;"></div>
+              </div>
+              <div style="padding-left:3px;">
+                <div class="t-line" style="background:#fff;opacity:0.4;width:60%;margin-bottom:3px;"></div>
+                <div class="t-line" style="background:#fff;opacity:0.2;width:95%;margin-bottom:2px;"></div>
+                <div class="t-line" style="background:#fff;opacity:0.2;width:80%;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="t-name">Classic Dark</div>
+        </div>
+        <div class="template-thumb" onclick="selectTemplate('modern',this)">
+          <div class="t-preview" style="background:#fff;">
+            <div class="t-line t-fat" style="background:#1A1A1A;width:75%;margin-bottom:2px;"></div>
+            <div class="t-line" style="background:#D4A843;width:50%;"></div>
+            <div style="height:2px;background:#D4A843;margin:4px 0;"></div>
+            <div class="t-line" style="background:#888;width:90%;margin-bottom:2px;"></div>
+            <div class="t-line" style="background:#888;width:70%;"></div>
+          </div>
+          <div class="t-name">Modern Gold</div>
+        </div>
+        <div class="template-thumb" onclick="selectTemplate('minimal',this)">
+          <div class="t-preview" style="background:#fff;padding:8px 12px;">
+            <div class="t-line t-fat" style="background:#111;width:80%;margin-bottom:4px;"></div>
+            <div class="t-line" style="background:#555;width:55%;margin-bottom:8px;"></div>
+            <div class="t-line" style="background:#ccc;width:100%;margin-bottom:4px;"></div>
+            <div class="t-line" style="background:#ddd;width:100%;margin-bottom:2px;"></div>
+            <div class="t-line" style="background:#ddd;width:75%;"></div>
+          </div>
+          <div class="t-name">Minimal Clean</div>
+        </div>
+        <div class="template-thumb" onclick="selectTemplate('bold',this)">
+          <div class="t-preview" style="background:#0F3D2B;color:#fff;">
+            <div class="t-line t-fat" style="background:#fff;opacity:0.6;width:65%;margin-bottom:3px;"></div>
+            <div class="t-line" style="background:#7EC8A0;opacity:0.7;width:45%;margin-bottom:6px;"></div>
+            <div style="flex:1;display:grid;grid-template-columns:1.6fr 1fr;gap:3px;">
+              <div><div class="t-line" style="background:#fff;opacity:0.3;width:90%;margin-bottom:2px;"></div><div class="t-line" style="background:#fff;opacity:0.2;width:80%;"></div></div>
+              <div style="background:rgba(255,255,255,0.05);border-radius:2px;padding:2px;"><div class="t-line" style="background:#7EC8A0;opacity:0.4;width:80%;margin-bottom:2px;"></div><div class="t-line" style="background:#7EC8A0;opacity:0.2;width:65%;"></div></div>
+            </div>
+          </div>
+          <div class="t-name">Bold Green</div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:1.5rem;">สีหัวข้อ</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem;">
+        <div onclick="setAccent('#2D5016')" style="width:28px;height:28px;border-radius:50%;background:#2D5016;cursor:pointer;border:2px solid var(--border);" title="Forest Green"></div>
+        <div onclick="setAccent('#1A1A2E')" style="width:28px;height:28px;border-radius:50%;background:#1A1A2E;cursor:pointer;border:2px solid var(--border);" title="Navy"></div>
+        <div onclick="setAccent('#8B2635')" style="width:28px;height:28px;border-radius:50%;background:#8B2635;cursor:pointer;border:2px solid var(--border);" title="Burgundy"></div>
+        <div onclick="setAccent('#1B4F72')" style="width:28px;height:28px;border-radius:50%;background:#1B4F72;cursor:pointer;border:2px solid var(--border);" title="Ocean Blue"></div>
+        <div onclick="setAccent('#4A235A')" style="width:28px;height:28px;border-radius:50%;background:#4A235A;cursor:pointer;border:2px solid var(--border);" title="Plum"></div>
+        <div onclick="setAccent('#333333')" style="width:28px;height:28px;border-radius:50%;background:#333333;cursor:pointer;border:2px solid var(--border);" title="Charcoal"></div>
+      </div>
+
+      <h3>คำแนะนำ</h3>
+      <ul style="font-size:13px;color:var(--muted);line-height:2;padding-left:1.2rem;">
+        <li>กดแท็บ "แก้ไขข้อมูล" เพื่อเพิ่มข้อมูล</li>
+        <li>เลือกเทมเพลตที่ชอบด้านบน</li>
+        <li>กด "Export PDF" เพื่อดาวน์โหลด</li>
+      </ul>
+      </div><!-- end sidebar-collapsible -->
+    </div><!-- end sidebar-panel -->
+
+    <div class="resume-main">
+      <div class="resume-paper-wrap">
+        <div class="resume-paper tpl-classic" id="resume-output">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div><!-- end resume-main -->
+  </div><!-- end resume-hero-wrap -->
+</div><!-- end page-view -->
+
+<!-- PAGE: EDIT -->
+<div class="page" id="page-edit">
+  <!-- Floating save button for tablet/mobile -->
+  <button class="btn btn-primary floating-save" onclick="saveAndView()" style="display:none" id="floating-save-btn">💾 บันทึก</button>
+  <div class="edit-page-layout">
+    <div class="edit-nav">
+      <div class="edit-nav-item active" onclick="switchEditSection('personal',this)">
+        <span class="nav-icon">👤</span> <span class="nav-label-full">ข้อมูลส่วนตัว</span>
+      </div>
+      <div class="edit-nav-item" onclick="switchEditSection('summary',this)">
+        <span class="nav-icon">📝</span> <span class="nav-label-full">สรุปตัวเอง</span>
+      </div>
+      <div class="edit-nav-item" onclick="switchEditSection('experience',this)">
+        <span class="nav-icon">💼</span> <span class="nav-label-full">ประสบการณ์</span>
+      </div>
+      <div class="edit-nav-item" onclick="switchEditSection('education',this)">
+        <span class="nav-icon">🎓</span> <span class="nav-label-full">การศึกษา</span>
+      </div>
+      <div class="edit-nav-item" onclick="switchEditSection('skills',this)">
+        <span class="nav-icon">🛠</span> <span class="nav-label-full">ทักษะ</span>
+      </div>
+      <div class="edit-nav-item" onclick="switchEditSection('languages',this)">
+        <span class="nav-icon">🌐</span> <span class="nav-label-full">ภาษา</span>
+      </div>
+      <div class="edit-nav-item" onclick="switchEditSection('projects',this)">
+        <span class="nav-icon">🚀</span> <span class="nav-label-full">โปรเจกต์</span>
+      </div>
+      <div class="edit-nav-item" onclick="switchEditSection('certifications',this)">
+        <span class="nav-icon">🏆</span> <span class="nav-label-full">ใบรับรอง</span>
+      </div>
+      <div class="edit-nav-save">
+        <button class="btn btn-primary" style="width:100%" onclick="saveAndView()">💾 บันทึกและดูเรซูเม</button>
+      </div>
+    </div>
+
+    <div class="edit-content">
+      <!-- PERSONAL -->
+      <div class="edit-section active" id="section-personal">
+        <div class="section-header"><h2>ข้อมูลส่วนตัว</h2></div>
+
+        <!-- PHOTO UPLOAD -->
+        <div style="background:var(--bg);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;text-align:center;">
+          <p style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:1rem;text-transform:uppercase;letter-spacing:1px;">รูปโปรไฟล์</p>
+          <div class="photo-upload-area" id="photo-drop-area" onclick="document.getElementById('photo-file-input').click()">
+            <div class="upload-hint" id="photo-placeholder">
+              <div class="upload-icon">📷</div>
+              <div>คลิกเพื่ออัปโหลด<br>รูปโปรไฟล์</div>
+            </div>
+          </div>
+          <input type="file" id="photo-file-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)">
+          <div class="photo-actions">
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('photo-file-input').click()">📁 เลือกรูป</button>
+            <button class="btn btn-danger btn-sm" id="photo-remove-btn" onclick="removePhoto()" style="display:none">🗑 ลบรูป</button>
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:0.75rem;">รูปทรง</p>
+          <div class="photo-shape-row">
+            <button class="shape-btn active" onclick="setPhotoShape('circle',this)">⬤ วงกลม</button>
+            <button class="shape-btn" onclick="setPhotoShape('rounded',this)">▢ มน</button>
+            <button class="shape-btn" onclick="setPhotoShape('square',this)">■ สี่เหลี่ยม</button>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group"><label>ชื่อ-นามสกุล *</label><input type="text" id="f-name" placeholder="เช่น สมชาย ใจดี"></div>
+          <div class="form-group"><label>ตำแหน่งงานที่ต้องการ</label><input type="text" id="f-title" placeholder="เช่น Product Manager"></div>
+          <div class="form-group"><label>อีเมล</label><input type="email" id="f-email" placeholder="email@example.com"></div>
+          <div class="form-group"><label>เบอร์โทร</label><input type="tel" id="f-phone" placeholder="+66 8x-xxxx-xxxx"></div>
+          <div class="form-group"><label>ที่อยู่ / เมือง</label><input type="text" id="f-location" placeholder="กรุงเทพฯ, ประเทศไทย"></div>
+          <div class="form-group"><label>LinkedIn</label><input type="url" id="f-linkedin" placeholder="linkedin.com/in/username"></div>
+          <div class="form-group"><label>Portfolio / Website</label><input type="url" id="f-website" placeholder="yoursite.com"></div>
+          <div class="form-group"><label>GitHub</label><input type="text" id="f-github" placeholder="github.com/username"></div>
+        </div>
+      </div>
+
+      <!-- SUMMARY -->
+      <div class="edit-section" id="section-summary">
+        <div class="section-header"><h2>สรุปตัวเอง (Professional Summary)</h2></div>
+        <div class="form-group">
+          <label>เขียนสรุปสั้นๆ เกี่ยวกับตัวเอง 2-4 ประโยค</label>
+          <textarea id="f-summary" rows="5" placeholder="นักพัฒนาซอฟต์แวร์ที่มีประสบการณ์ 5 ปี มีความเชี่ยวชาญด้าน..."></textarea>
+        </div>
+      </div>
+
+      <!-- EXPERIENCE -->
+      <div class="edit-section" id="section-experience">
+        <div class="section-header">
+          <h2>ประสบการณ์ทำงาน</h2>
+          <button class="btn btn-primary btn-sm" onclick="openModal('exp')">+ เพิ่ม</button>
+        </div>
+        <div id="exp-list"></div>
+      </div>
+
+      <!-- EDUCATION -->
+      <div class="edit-section" id="section-education">
+        <div class="section-header">
+          <h2>การศึกษา</h2>
+          <button class="btn btn-primary btn-sm" onclick="openModal('edu')">+ เพิ่ม</button>
+        </div>
+        <div id="edu-list"></div>
+      </div>
+
+      <!-- SKILLS -->
+      <div class="edit-section" id="section-skills">
+        <div class="section-header"><h2>ทักษะ</h2></div>
+        <div id="skills-editor">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;">พิมพ์ทักษะแล้วกด Enter หรือกดปุ่ม "เพิ่ม"</p>
+          <div class="skill-editor" id="skill-tags"></div>
+          <div class="add-skill-row">
+            <input type="text" id="skill-input" placeholder="เช่น JavaScript, Photoshop, การสื่อสาร..." onkeydown="if(event.key==='Enter')addSkill()">
+            <button class="btn btn-primary" onclick="addSkill()">+ เพิ่ม</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LANGUAGES -->
+      <div class="edit-section" id="section-languages">
+        <div class="section-header">
+          <h2>ภาษา</h2>
+          <button class="btn btn-primary btn-sm" onclick="openModal('lang')">+ เพิ่ม</button>
+        </div>
+        <div id="lang-list"></div>
+      </div>
+
+      <!-- PROJECTS -->
+      <div class="edit-section" id="section-projects">
+        <div class="section-header">
+          <h2>โปรเจกต์</h2>
+          <button class="btn btn-primary btn-sm" onclick="openModal('proj')">+ เพิ่ม</button>
+        </div>
+        <div id="proj-list"></div>
+      </div>
+
+      <!-- CERTIFICATIONS -->
+      <div class="edit-section" id="section-certifications">
+        <div class="section-header">
+          <h2>ใบรับรอง / รางวัล</h2>
+          <button class="btn btn-primary btn-sm" onclick="openModal('cert')">+ เพิ่ม</button>
+        </div>
+        <div id="cert-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: CONTACT -->
+<div class="page" id="page-contact">
+  <div class="contact-page">
+    <div class="contact-card">
+      <h2>ติดต่อเรา</h2>
+      <p>มีคำถาม ข้อเสนอแนะ หรือต้องการความช่วยเหลือ? กรอกฟอร์มด้านล่างแล้วเราจะติดต่อกลับโดยเร็ว</p>
+      <div class="form-group"><label>ชื่อ-นามสกุล *</label><input type="text" id="c-name" placeholder="ชื่อของคุณ"></div>
+      <div class="form-group"><label>อีเมล *</label><input type="email" id="c-email" placeholder="email@example.com"></div>
+      <div class="form-group"><label>เบอร์โทร</label><input type="tel" id="c-phone" placeholder="+66 8x-xxxx-xxxx"></div>
+      <div class="form-group"><label>หัวข้อ</label><input type="text" id="c-subject" placeholder="เช่น ขอความช่วยเหลือเกี่ยวกับ..."></div>
+      <div class="form-group"><label>ข้อความ *</label><textarea id="c-message" rows="5" placeholder="เขียนข้อความของคุณที่นี่..."></textarea></div>
+      <button class="btn btn-primary" style="width:100%;padding:12px" onclick="sendContact()">📨 ส่งข้อความ</button>
+      <div class="contact-send-status" id="contact-status"></div>
+      <p style="margin-top:1.5rem;font-size:12px;color:var(--muted);text-align:center;">
+        ข้อความจะถูกส่งไปยัง sarut3452@gmail.com
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal-inner">
+    <h3 id="modal-title">เพิ่มข้อมูล</h3>
+    <div id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveModal()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM NAV (mobile) -->
+<div class="bottom-nav" id="bottom-nav">
+  <button class="bottom-nav-item active" id="bn-view" onclick="switchPage('view');updateBottomNav('view')">
+    <span class="bn-icon">👁</span>ดูเรซูเม
+  </button>
+  <button class="bottom-nav-item" id="bn-edit" onclick="switchPage('edit');updateBottomNav('edit')">
+    <span class="bn-icon">✏️</span>แก้ไข
+  </button>
+  <button class="bottom-nav-item" id="bn-pdf" onclick="exportPDF()">
+    <span class="bn-icon">⬇</span>Export PDF
+  </button>
+  <button class="bottom-nav-item" id="bn-contact" onclick="switchPage('contact');updateBottomNav('contact')">
+    <span class="bn-icon">✉️</span>ติดต่อ
+  </button>
+</div>
+
+<script>
+// ========== DATA STORE ==========
+let resumeData = {
+  personal: { name:'', title:'', email:'', phone:'', location:'', linkedin:'', website:'', github:'' },
+  summary: '',
+  experience: [],
+  education: [],
+  skills: [],
+  languages: [],
+  projects: [],
+  certifications: []
+};
+let currentTemplate = 'classic';
+let modalType = null;
+let editIndex = null;
+let accentColor = '#2D5016';
+let profilePhoto = null;
+let photoShape = 'circle';
+
+// ========== INIT ==========
+window.onload = function() {
+  const saved = localStorage.getItem('resumeData');
+  if (saved) { try { resumeData = JSON.parse(saved); } catch(e){} }
+  const savedTpl = localStorage.getItem('resumeTemplate');
+  if (savedTpl) currentTemplate = savedTpl;
+  const savedAccent = localStorage.getItem('resumeAccent');
+  if (savedAccent) accentColor = savedAccent;
+  const savedPhoto = localStorage.getItem('profilePhoto');
+  if (savedPhoto) { profilePhoto = savedPhoto; renderPhotoPreview(); }
+  const savedShape = localStorage.getItem('photoShape');
+  if (savedShape) { photoShape = savedShape; syncShapeBtns(); }
+  loadFormData();
+  renderAllLists();
+  renderResume();
+  renderSkillTags();
+  setTimeout(scaleResumePaper, 50);
+  checkFloatingSave();
+};
+
+function save() {
+  localStorage.setItem('resumeData', JSON.stringify(resumeData));
+  localStorage.setItem('resumeTemplate', currentTemplate);
+  localStorage.setItem('resumeAccent', accentColor);
+  if (profilePhoto) localStorage.setItem('profilePhoto', profilePhoto);
+  localStorage.setItem('photoShape', photoShape);
+}
+
+// ========== RESPONSIVE HELPERS ==========
+function toggleSidebar() {
+  const col = document.getElementById('sidebar-collapsible');
+  const arrow = document.getElementById('sidebar-arrow');
+  const panel = document.getElementById('sidebar-panel');
+  col.classList.toggle('open');
+  panel.classList.toggle('expanded');
+  arrow.textContent = col.classList.contains('open') ? '▲' : '▼';
+}
+
+function updateBottomNav(page) {
+  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('bn-' + page);
+  if (el) el.classList.add('active');
+}
+
+function scaleResumePaper() {
+  const wrap = document.querySelector('.resume-paper-wrap');
+  const paper = document.querySelector('.resume-paper');
+  if (!wrap || !paper) return;
+  const available = wrap.clientWidth;
+  const scale = Math.min(1, available / 794);
+  paper.style.transform = `scale(${scale})`;
+  paper.style.marginBottom = `${(1123 * scale) - 1123 + 16}px`;
+  wrap.style.height = `${1123 * scale + 16}px`;
+}
+
+function checkFloatingSave() {
+  const btn = document.getElementById('floating-save-btn');
+  if (!btn) return;
+  btn.style.display = window.innerWidth <= 820 ? 'block' : 'none';
+}
+
+window.addEventListener('resize', () => { scaleResumePaper(); checkFloatingSave(); });
+
+// ========== PAGE SWITCH ==========
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach((t,i) => {
+    const pages = ['view','edit','contact'];
+    t.classList.toggle('active', pages[i] === page);
+  });
+  updateBottomNav(page);
+  if (page === 'view') { renderResume(); setTimeout(scaleResumePaper, 50); }
+}
+
+function switchEditSection(sec, el) {
+  document.querySelectorAll('.edit-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-'+sec).classList.add('active');
+  document.querySelectorAll('.edit-nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function saveAndView() {
+  collectFormData();
+  save();
+  renderResume();
+  renderAllLists();
+  switchPage('view');
+  showToast('✅ บันทึกและอัปเดตเรซูเมแล้ว');
+}
+
+// ========== TEMPLATE ==========
+function selectTemplate(tpl, el) {
+  currentTemplate = tpl;
+  document.querySelectorAll('.template-thumb').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  save();
+  renderResume();
+}
+
+function setAccent(color) {
+  accentColor = color;
+  save();
+  renderResume();
+  showToast('🎨 เปลี่ยนสีเรียบร้อย');
+}
+
+// ========== FORM DATA ==========
+function loadFormData() {
+  const p = resumeData.personal;
+  for (const key of Object.keys(p)) {
+    const el = document.getElementById('f-'+key);
+    if (el) el.value = p[key] || '';
+  }
+  const sumEl = document.getElementById('f-summary');
+  if (sumEl) sumEl.value = resumeData.summary || '';
+}
+
+function collectFormData() {
+  const keys = ['name','title','email','phone','location','linkedin','website','github'];
+  keys.forEach(k => {
+    const el = document.getElementById('f-'+k);
+    if (el) resumeData.personal[k] = el.value.trim();
+  });
+  const sumEl = document.getElementById('f-summary');
+  if (sumEl) resumeData.summary = sumEl.value.trim();
+}
+
+// ========== SKILL TAGS ==========
+function renderSkillTags() {
+  const wrap = document.getElementById('skill-tags');
+  if (!wrap) return;
+  wrap.innerHTML = resumeData.skills.map((s,i) =>
+    `<div class="skill-tag">${s}<button onclick="removeSkill(${i})" title="ลบ">×</button></div>`
+  ).join('');
+}
+
+function addSkill() {
+  const inp = document.getElementById('skill-input');
+  const val = inp.value.trim();
+  if (!val) return;
+  resumeData.skills.push(val);
+  inp.value = '';
+  renderSkillTags();
+  save();
+}
+
+function removeSkill(i) {
+  resumeData.skills.splice(i, 1);
+  renderSkillTags();
+  save();
+}
+
+// ========== LISTS RENDER ==========
+function renderAllLists() {
+  renderList('exp');
+  renderList('edu');
+  renderList('lang');
+  renderList('proj');
+  renderList('cert');
+}
+
+function renderList(type) {
+  const map = {
+    exp: { el:'exp-list', arr:'experience', label: d => `<div class="card-item-title">${d.title||'(ยังไม่ระบุ)'}</div><div style="font-size:13px;color:var(--muted)">${d.company||''} · ${d.period||''}</div>` },
+    edu: { el:'edu-list', arr:'education', label: d => `<div class="card-item-title">${d.degree||'(ยังไม่ระบุ)'}</div><div style="font-size:13px;color:var(--muted)">${d.school||''} · ${d.year||''}</div>` },
+    lang: { el:'lang-list', arr:'languages', label: d => `<div class="card-item-title">${d.language||'(ยังไม่ระบุ)'}</div><div style="font-size:13px;color:var(--muted)">ระดับ: ${d.level||''}</div>` },
+    proj: { el:'proj-list', arr:'projects', label: d => `<div class="card-item-title">${d.name||'(ยังไม่ระบุ)'}</div><div style="font-size:13px;color:var(--muted)">${d.tech||''}</div>` },
+    cert: { el:'cert-list', arr:'certifications', label: d => `<div class="card-item-title">${d.name||'(ยังไม่ระบุ)'}</div><div style="font-size:13px;color:var(--muted)">${d.issuer||''} · ${d.year||''}</div>` },
+  };
+  const { el, arr, label } = map[type];
+  const container = document.getElementById(el);
+  if (!container) return;
+  const items = resumeData[arr];
+  if (!items || items.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="big">📄</div>ยังไม่มีข้อมูล กดปุ่ม "+ เพิ่ม" ด้านบน</div>`;
+    return;
+  }
+  container.innerHTML = items.map((d,i) => `
+    <div class="card-item">
+      <div class="card-item-header">
+        ${label(d)}
+        <div class="card-item-actions">
+          <button class="btn btn-outline btn-sm" onclick="openModal('${type}',${i})">✏️ แก้ไข</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem('${type}',${i})">🗑 ลบ</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteItem(type, i) {
+  const map = { exp:'experience', edu:'education', lang:'languages', proj:'projects', cert:'certifications' };
+  resumeData[map[type]].splice(i, 1);
+  save();
+  renderList(type);
+  renderResume();
+  showToast('🗑 ลบข้อมูลแล้ว');
+}
+
+// ========== MODAL ==========
+const modalFields = {
+  exp: {
+    title: 'ประสบการณ์ทำงาน',
+    fields: [
+      { id:'title', label:'ตำแหน่งงาน *', placeholder:'Senior Software Engineer' },
+      { id:'company', label:'บริษัท', placeholder:'ABC Company' },
+      { id:'period', label:'ช่วงเวลา', placeholder:'ม.ค. 2022 - ปัจจุบัน' },
+      { id:'location', label:'สถานที่', placeholder:'กรุงเทพฯ' },
+      { id:'description', label:'รายละเอียดงาน', placeholder:'- พัฒนาระบบ...\n- ดูแล...', type:'textarea' },
+    ]
+  },
+  edu: {
+    title: 'การศึกษา',
+    fields: [
+      { id:'degree', label:'ระดับการศึกษา / สาขาวิชา *', placeholder:'ปริญญาตรี วิศวกรรมคอมพิวเตอร์' },
+      { id:'school', label:'มหาวิทยาลัย / สถาบัน', placeholder:'จุฬาลงกรณ์มหาวิทยาลัย' },
+      { id:'year', label:'ปีที่จบ / ช่วงเวลา', placeholder:'2560 - 2564' },
+      { id:'gpa', label:'เกรดเฉลี่ย (GPA)', placeholder:'3.80' },
+      { id:'honors', label:'เกียรตินิยม / รางวัล', placeholder:'เกียรตินิยมอันดับ 1' },
+    ]
+  },
+  lang: {
+    title: 'ภาษา',
+    fields: [
+      { id:'language', label:'ภาษา *', placeholder:'ภาษาอังกฤษ' },
+      { id:'level', label:'ระดับ', placeholder:'Native / Fluent / Intermediate / Basic', type:'select', options:['Native','Fluent','Advanced','Intermediate','Basic'] },
+      { id:'score', label:'คะแนนสอบ (ถ้ามี)', placeholder:'TOEIC 850' },
+    ]
+  },
+  proj: {
+    title: 'โปรเจกต์',
+    fields: [
+      { id:'name', label:'ชื่อโปรเจกต์ *', placeholder:'E-commerce Platform' },
+      { id:'tech', label:'เทคโนโลยีที่ใช้', placeholder:'React, Node.js, MongoDB' },
+      { id:'period', label:'ช่วงเวลา', placeholder:'2023 - 2024' },
+      { id:'url', label:'ลิงก์ / URL', placeholder:'github.com/user/project' },
+      { id:'description', label:'รายละเอียด', placeholder:'พัฒนาระบบ...', type:'textarea' },
+    ]
+  },
+  cert: {
+    title: 'ใบรับรอง / รางวัล',
+    fields: [
+      { id:'name', label:'ชื่อใบรับรอง / รางวัล *', placeholder:'AWS Certified Solutions Architect' },
+      { id:'issuer', label:'ออกโดย', placeholder:'Amazon Web Services' },
+      { id:'year', label:'ปีที่ได้รับ', placeholder:'2024' },
+      { id:'id', label:'รหัสใบรับรอง (ถ้ามี)', placeholder:'ABC-123456' },
+    ]
+  }
+};
+
+function openModal(type, idx) {
+  modalType = type;
+  editIndex = (idx !== undefined) ? idx : null;
+  const cfg = modalFields[type];
+  document.getElementById('modal-title').textContent = (editIndex !== null ? 'แก้ไข' : 'เพิ่ม') + cfg.title;
+  const arr = resumeData[{exp:'experience',edu:'education',lang:'languages',proj:'projects',cert:'certifications'}[type]];
+  const current = (editIndex !== null) ? arr[editIndex] : {};
+  document.getElementById('modal-body').innerHTML = cfg.fields.map(f => {
+    if (f.type === 'textarea') return `<div class="form-group"><label>${f.label}</label><textarea id="mf-${f.id}" rows="4" placeholder="${f.placeholder}">${current[f.id]||''}</textarea></div>`;
+    if (f.type === 'select') return `<div class="form-group"><label>${f.label}</label><select id="mf-${f.id}">${f.options.map(o=>`<option${(current[f.id]===o)?' selected':''}>${o}</option>`).join('')}</select></div>`;
+    return `<div class="form-group"><label>${f.label}</label><input type="text" id="mf-${f.id}" placeholder="${f.placeholder}" value="${current[f.id]||''}"></div>`;
+  }).join('');
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  modalType = null; editIndex = null;
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+function saveModal() {
+  const cfg = modalFields[modalType];
+  const obj = {};
+  cfg.fields.forEach(f => {
+    const el = document.getElementById('mf-'+f.id);
+    if (el) obj[f.id] = el.value.trim();
+  });
+  const arrMap = {exp:'experience',edu:'education',lang:'languages',proj:'projects',cert:'certifications'};
+  const arr = resumeData[arrMap[modalType]];
+  if (editIndex !== null) { arr[editIndex] = obj; }
+  else { arr.push(obj); }
+  save();
+  renderList(modalType);
+  renderResume();
+  closeModal();
+  showToast('✅ บันทึกข้อมูลแล้ว');
+}
+
+// ========== PHOTO HANDLERS ==========
+function handlePhotoUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('⚠️ รูปใหญ่เกินไป (ไม่เกิน 5MB)'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    profilePhoto = e.target.result;
+    renderPhotoPreview();
+    save();
+    renderResume();
+    showToast('✅ อัปโหลดรูปโปรไฟล์แล้ว');
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderPhotoPreview() {
+  const area = document.getElementById('photo-drop-area');
+  const placeholder = document.getElementById('photo-placeholder');
+  const removeBtn = document.getElementById('photo-remove-btn');
+  if (!area) return;
+  if (profilePhoto) {
+    let existing = area.querySelector('img');
+    if (!existing) { existing = document.createElement('img'); area.appendChild(existing); }
+    existing.src = profilePhoto;
+    existing.style.cssText = `width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:inherit;`;
+    if (placeholder) placeholder.style.display = 'none';
+    if (removeBtn) removeBtn.style.display = '';
+  } else {
+    const existing = area.querySelector('img');
+    if (existing) existing.remove();
+    if (placeholder) placeholder.style.display = '';
+    if (removeBtn) removeBtn.style.display = 'none';
+  }
+}
+
+function removePhoto() {
+  profilePhoto = null;
+  localStorage.removeItem('profilePhoto');
+  const inp = document.getElementById('photo-file-input');
+  if (inp) inp.value = '';
+  renderPhotoPreview();
+  renderResume();
+  showToast('🗑 ลบรูปโปรไฟล์แล้ว');
+}
+
+function setPhotoShape(shape, el) {
+  photoShape = shape;
+  document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const area = document.getElementById('photo-drop-area');
+  if (area) {
+    area.style.borderRadius = shape === 'circle' ? '50%' : shape === 'rounded' ? '16px' : '6px';
+  }
+  save();
+  renderResume();
+}
+
+function syncShapeBtns() {
+  document.querySelectorAll('.shape-btn').forEach(b => {
+    const s = b.getAttribute('onclick').match(/'(\w+)'/)?.[1];
+    b.classList.toggle('active', s === photoShape);
+  });
+  const area = document.getElementById('photo-drop-area');
+  if (area) area.style.borderRadius = photoShape === 'circle' ? '50%' : photoShape === 'rounded' ? '16px' : '6px';
+}
+
+function getPhotoHTML(size, border='') {
+  if (!profilePhoto) return '';
+  const radius = photoShape === 'circle' ? '50%' : photoShape === 'rounded' ? '16px' : '6px';
+  return `<img src="${profilePhoto}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:${radius};${border}display:block;flex-shrink:0;">`;
+}
+
+// ========== RENDER RESUME ==========
+function renderResume() {
+  const paper = document.getElementById('resume-output');
+  paper.className = `resume-paper tpl-${currentTemplate}`;
+  const p = resumeData.personal;
+  const ac = accentColor;
+
+  const contactItems = [
+    p.email && `📧 ${p.email}`,
+    p.phone && `📞 ${p.phone}`,
+    p.location && `📍 ${p.location}`,
+    p.linkedin && `LinkedIn: ${p.linkedin}`,
+    p.website && `🌐 ${p.website}`,
+    p.github && `GitHub: ${p.github}`,
+  ].filter(Boolean);
+
+  const expHTML = resumeData.experience.map(e => `
+    <div class="exp-item">
+      <div class="exp-title">${e.title||''}</div>
+      <div class="exp-company" style="color:${ac}">${e.company||''}${e.location?` · ${e.location}`:''}</div>
+      <div class="exp-date">${e.period||''}</div>
+      <div class="exp-desc">${(e.description||'').replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+
+  const eduHTML = resumeData.education.map(e => `
+    <div class="edu-item">
+      <div class="edu-degree">${e.degree||''}</div>
+      <div class="edu-school">${e.school||''}</div>
+      <div class="edu-year">${e.year||''}${e.gpa?` · GPA ${e.gpa}`:''}${e.honors?` · ${e.honors}`:''}</div>
+    </div>`).join('');
+
+  const skillsHTML = resumeData.skills.map(s => `<span class="skill-pill">${s}</span>`).join('');
+
+  const langHTML = resumeData.languages.map(l => `
+    <div class="lang-item"><span>${l.language||''}</span><span class="lang-level">${l.level||''}${l.score?` · ${l.score}`:''}</span></div>`).join('');
+
+  const projHTML = resumeData.projects.map(pr => `
+    <div class="exp-item">
+      <div class="exp-title">${pr.name||''}</div>
+      <div class="exp-company" style="color:${ac}">${pr.tech||''}</div>
+      <div class="exp-date">${pr.period||''}${pr.url?` · <a href="#" style="color:${ac}">${pr.url}</a>`:''}</div>
+      <div class="exp-desc">${(pr.description||'').replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+
+  const certHTML = resumeData.certifications.map(c => `
+    <div class="edu-item">
+      <div class="edu-degree">${c.name||''}</div>
+      <div class="edu-school">${c.issuer||''}</div>
+      <div class="edu-year">${c.year||''}${c.id?` · ID: ${c.id}`:''}</div>
+    </div>`).join('');
+
+  const noInfo = `<div style="color:#ccc;font-size:13px;font-style:italic">ยังไม่มีข้อมูล</div>`;
+
+  let html = '';
+  const photoClassic = getPhotoHTML(100, 'border:3px solid rgba(255,255,255,0.3);margin-bottom:12px;');
+  const photoModern  = getPhotoHTML(90,  'border:3px solid #D4A843;');
+  const photoMinimal = getPhotoHTML(80,  'border:2px solid #ddd;');
+  const photoBold    = getPhotoHTML(90,  'border:3px solid rgba(255,255,255,0.25);');
+
+  if (currentTemplate === 'classic') {
+    html = `
+      <div class="rp-header" style="display:flex;align-items:flex-start;gap:1.5rem;">
+        ${photoClassic ? `<div style="flex-shrink:0;margin-top:4px;">${photoClassic}</div>` : ''}
+        <div style="flex:1;">
+          <h1>${p.name||'ชื่อ-นามสกุล'}</h1>
+          <p>${p.title||'ตำแหน่งงาน'}</p>
+          <div class="rp-contact-row">${contactItems.map(c=>`<span>${c}</span>`).join('')}</div>
+        </div>
+      </div>
+      <div class="rp-body">
+        <div class="rp-left">
+          ${resumeData.summary?`<div class="rp-section-title" style="color:${ac};border-color:${ac}">เกี่ยวกับฉัน</div><div class="rp-summary">${resumeData.summary}</div>`:''}
+          <div class="rp-section-title" style="color:${ac};border-color:${ac}">ทักษะ</div>
+          <div>${skillsHTML||noInfo}</div>
+          ${langHTML?`<div class="rp-section-title" style="color:${ac};border-color:${ac}">ภาษา</div><div>${langHTML}</div>`:''}
+          ${certHTML?`<div class="rp-section-title" style="color:${ac};border-color:${ac}">ใบรับรอง</div><div>${certHTML}</div>`:''}
+        </div>
+        <div class="rp-right">
+          <div class="rp-section-title" style="color:${ac};border-color:${ac}">ประสบการณ์</div>
+          <div>${expHTML||noInfo}</div>
+          <div class="rp-section-title" style="color:${ac};border-color:${ac}">การศึกษา</div>
+          <div>${eduHTML||noInfo}</div>
+          ${projHTML?`<div class="rp-section-title" style="color:${ac};border-color:${ac}">โปรเจกต์</div><div>${projHTML}</div>`:''}
+        </div>
+      </div>`;
+  } else if (currentTemplate === 'modern') {
+    html = `
+      <div class="rp-header">
+        <div style="display:flex;align-items:center;gap:1.5rem;">
+          ${photoModern ? `<div style="flex-shrink:0;">${photoModern}</div>` : ''}
+          <div>
+            <h1>${p.name||'ชื่อ-นามสกุล'}</h1>
+            <div class="subtitle" style="color:${ac}">${p.title||'ตำแหน่งงาน'}</div>
+            <div class="rp-contact-row">${contactItems.map(c=>`<span>${c}</span>`).join('')}</div>
+          </div>
+        </div>
+      </div>
+      <div class="rp-body">
+        <div>
+          ${resumeData.summary?`<div class="rp-section-title" style="color:${ac}">Professional Summary</div><div class="rp-summary">${resumeData.summary}</div>`:''}
+          <div class="rp-section-title" style="color:${ac}">ประสบการณ์</div>
+          <div>${expHTML||noInfo}</div>
+          ${projHTML?`<div class="rp-section-title" style="color:${ac}">โปรเจกต์</div><div>${projHTML}</div>`:''}
+        </div>
+        <div>
+          <div class="rp-section-title" style="color:${ac}">การศึกษา</div>
+          <div>${eduHTML||noInfo}</div>
+          <div class="rp-section-title" style="color:${ac}">ทักษะ</div>
+          <div>${skillsHTML||noInfo}</div>
+          ${langHTML?`<div class="rp-section-title" style="color:${ac}">ภาษา</div><div>${langHTML}</div>`:''}
+          ${certHTML?`<div class="rp-section-title" style="color:${ac}">ใบรับรอง</div><div>${certHTML}</div>`:''}
+        </div>
+      </div>`;
+  } else if (currentTemplate === 'minimal') {
+    html = `
+      <div class="rp-header">
+        <div style="display:flex;align-items:center;gap:2rem;">
+          ${photoMinimal ? `<div style="flex-shrink:0;">${photoMinimal}</div>` : ''}
+          <div>
+            <h1>${p.name||'ชื่อ-นามสกุล'}</h1>
+            <div class="subtitle">${p.title||'ตำแหน่งงาน'}</div>
+            <div class="rp-contact-row">${contactItems.map(c=>`<span>${c}</span>`).join('')}</div>
+          </div>
+        </div>
+      </div>
+      <div class="rp-body">
+        ${resumeData.summary?`<div class="rp-section-title" style="color:${ac}">Summary</div><div class="rp-divider"></div><div class="rp-summary">${resumeData.summary}</div>`:''}
+        <div class="rp-section-title" style="color:${ac}">Experience</div><div class="rp-divider"></div>
+        <div>${expHTML||noInfo}</div>
+        <div class="rp-section-title" style="color:${ac}">Education</div><div class="rp-divider"></div>
+        <div>${eduHTML||noInfo}</div>
+        <div class="rp-section-title" style="color:${ac}">Skills</div><div class="rp-divider"></div>
+        <div style="margin-bottom:16px">${skillsHTML||noInfo}</div>
+        ${langHTML?`<div class="rp-section-title" style="color:${ac}">Languages</div><div class="rp-divider"></div><div style="margin-bottom:16px">${langHTML}</div>`:''}
+        ${projHTML?`<div class="rp-section-title" style="color:${ac}">Projects</div><div class="rp-divider"></div><div>${projHTML}</div>`:''}
+        ${certHTML?`<div class="rp-section-title" style="color:${ac}">Certifications</div><div class="rp-divider"></div><div>${certHTML}</div>`:''}
+      </div>`;
+  } else if (currentTemplate === 'bold') {
+    html = `
+      <div class="rp-header">
+        <div>
+          <h1>${p.name||'ชื่อ-นามสกุล'}</h1>
+          <div class="subtitle">${p.title||'ตำแหน่งงาน'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:12px;">
+          ${photoBold ? photoBold : ''}
+          <div class="rp-contact-col">${contactItems.map(c=>`<div>${c}</div>`).join('')}</div>
+        </div>
+      </div>
+      <div class="rp-body">
+        <div class="rp-left">
+          ${resumeData.summary?`<div class="rp-section-title" style="color:${ac}">เกี่ยวกับฉัน</div><div class="rp-summary">${resumeData.summary}</div>`:''}
+          <div class="rp-section-title" style="color:${ac}">ประสบการณ์</div>
+          <div>${expHTML||noInfo}</div>
+          ${projHTML?`<div class="rp-section-title" style="color:${ac}">โปรเจกต์</div><div>${projHTML}</div>`:''}
+        </div>
+        <div class="rp-right">
+          <div class="rp-section-title" style="color:${ac}">การศึกษา</div>
+          <div>${eduHTML||noInfo}</div>
+          <div class="rp-section-title" style="color:${ac}">ทักษะ</div>
+          <div style="margin-bottom:16px">${skillsHTML||noInfo}</div>
+          ${langHTML?`<div class="rp-section-title" style="color:${ac}">ภาษา</div><div>${langHTML}</div>`:''}
+          ${certHTML?`<div class="rp-section-title" style="color:${ac}">ใบรับรอง</div><div>${certHTML}</div>`:''}
+        </div>
+      </div>`;
+  }
+
+  paper.innerHTML = html;
+  setTimeout(scaleResumePaper, 10);
+}
+
+// ========== PDF EXPORT ==========
+function exportPDF() {
+  collectFormData();
+  renderResume();
+  const name = resumeData.personal.name || 'resume';
+  const el = document.getElementById('resume-output');
+  const opt = {
+    margin: 0,
+    filename: `${name}-resume.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+  };
+  showToast('⏳ กำลัง Export PDF...');
+  html2pdf().set(opt).from(el).save().then(() => showToast('✅ Export PDF สำเร็จ!'));
+}
+
+// ========== CONTACT FORM ==========
+function sendContact() {
+  const name = document.getElementById('c-name').value.trim();
+  const email = document.getElementById('c-email').value.trim();
+  const subject = document.getElementById('c-subject').value.trim();
+  const message = document.getElementById('c-message').value.trim();
+  if (!name || !email || !message) {
+    showStatus('กรุณากรอกข้อมูลที่จำเป็น (ชื่อ, อีเมล, ข้อความ)', false);
+    return;
+  }
+  const mailtoLink = `mailto:sarut3452@gmail.com?subject=${encodeURIComponent(subject||'ติดต่อจาก ResumeCraft')}&body=${encodeURIComponent(`ชื่อ: ${name}\nอีเมล: ${email}\nเบอร์: ${document.getElementById('c-phone').value}\n\n${message}`)}`;
+  window.location.href = mailtoLink;
+  showStatus('✅ เปิดโปรแกรมอีเมลแล้ว กรุณากดส่งเพื่อยืนยัน', true);
+  setTimeout(() => {
+    document.getElementById('c-name').value='';
+    document.getElementById('c-email').value='';
+    document.getElementById('c-phone').value='';
+    document.getElementById('c-subject').value='';
+    document.getElementById('c-message').value='';
+  }, 500);
+}
+
+function showStatus(msg, ok) {
+  const el = document.getElementById('contact-status');
+  el.textContent = msg;
+  el.className = 'contact-send-status ' + (ok ? 'status-success' : 'status-error');
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display='none'; }, 6000);
+}
+
+// ========== TOAST ==========
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ========== AUTO SAVE ==========
+document.addEventListener('input', e => {
+  const ids = ['f-name','f-title','f-email','f-phone','f-location','f-linkedin','f-website','f-github','f-summary'];
+  if (ids.includes(e.target.id)) {
+    collectFormData();
+    save();
+  }
+});
+</script>
+</body>
+</html>
